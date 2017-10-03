@@ -4,13 +4,9 @@
     #include "parameterStruct.h"
 #endif
 #include "fileIO.h"
-#include "interactiveInput.h"
 #include "SMrate.h"
 #include "BSMrate.h"
-#include "discLimit.h"
-#include "exclusionLimit.h"
 #include "calcRates.h"
-#include "confInterval.h"
 #include "sterileOscillation.h"
 #include "NSIglobalFit.h"
 
@@ -43,11 +39,6 @@ int main(int argc, char *argv[])
                mode = readConfigFile(&pList,filename);
                i++;
             }
-            else if ( std::strcmp(argv[i], "-i") == 0 )
-            {
-                std::cout << "Running Conudl in interactive mode" << std::endl;
-                mode = interactiveInput(&pList);
-            }
             else
             {
                 std::cerr << "Conudl: Invalid input" << std::endl << std::endl;
@@ -66,7 +57,7 @@ int main(int argc, char *argv[])
     
 	if ( mode < 1 ) 
     {
-        std::cerr << "Conudl: Problem with configuration, aborting" << std::endl;
+        std::cerr << "Conudl: Problem with configuration file, aborting" << std::endl;
         return 0;
     }
 	
@@ -76,57 +67,15 @@ int main(int argc, char *argv[])
         err = calcRates(&pList);
         return 0;
     }   
-    
-    //discovery limit evolution mode
-    if ( mode == 2 )
-    {
-        discLimitEvolution(&pList, 0);
-        return 0;
-    }
-    
-    //discovery limit as a function of mediator mass
-    if ( mode == 3 )
-    {
-        discLimitVsMmed(&pList, 0);
-        return 0;
-    }
-    
-    //exclusion limit as a function of mediator mass
-    if ( mode == 4 )
-    {
-        exclusionLimit(&pList, 0);
-        return 0;
-    }
-    
-    //print-out total rate above threshold mode
-	if(mode == 5)
-    {
-        err = calcRatesThreshold(&pList);
-        return 0;
-    }  
-    
-    //find confidence interval
-    if ( mode == 6 )
-    {
-        //MCtestDisc(&pList);
-        confIntVsExposure(&pList);
-        return 0;
-    }
-    
-    //discovery limit as a function of threshold
-    if ( mode == 7 )
-    {
-        discLimitVsThresh(&pList, 0);
-        return 0;
-    }
-    
-    //standard model significance 
-    if ( mode == 8 )
-    {
-        SMsignificanceExp(&pList);
-        return 0;
-    }
 
+    //NSI multinest fit
+    if (mode == 2 )
+    {
+        NSIglobalFit(&pList);
+        return 0;
+    }
+    
+    //future feature
     //sterile sensitivity mode
     if ( mode == 9 )
     {
@@ -134,12 +83,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     
-    //NSI multinest fit
-    if (mode == 10 )
-    {
-        NSIglobalFit(&pList);
-        return 0;
-    }
+
     std::cerr << "Conudl: choose a valid mode" << std::endl;
     return 0;
 }

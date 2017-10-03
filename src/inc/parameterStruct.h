@@ -17,12 +17,13 @@ struct paramList {
 
 	//root directory for file output
 	char root[50];
-
+        //MultiNest sampling parameters
+        double sampling[8];
 	//Struct for neutrino sources
 	int nSource, sourcej, fluxj;
-    sourceStruct sources[10];
+        sourceStruct sources[10];
 	double Er;
-    
+
 	//setup for rate integration
 	gsl_function F;
 	double (*rateFunc)(double, double, paramList *, int);

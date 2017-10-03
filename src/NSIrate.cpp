@@ -1,17 +1,17 @@
 #include <iostream>
 #include <cmath>
 #ifndef GSL_INTERP_H
-	#include <gsl/gsl_interp.h>
+    #include <gsl/gsl_interp.h>
 #endif
 #include "formFactorSI.h"
 #include "nuRate.h"
 #include "detectorFunctions.h"
 #ifndef DETECTORSTRUCT_H
-	#include "detectorStruct.h"
+    #include "detectorStruct.h"
 #endif
 #ifndef PARAMETERSTRUCT_H
-	#include "parameterStruct.h"
-#endif	
+    #include "parameterStruct.h"
+#endif    
 #include "DEIntegrator.h"
 #include "DEIntegrationConstants.h"
 
@@ -26,133 +26,134 @@ const double GAP = 0.61689;  //SM axial proton coupling
 const double GAN = -0.598426;//SM axial neutron coupling
 
 //returns SM+NSI rate per kg/year/keV for the jth flux
-double NSIrate(double ErKeV, paramList *pList, int detj, int sourcej, int fluxj)		  
+double NSIrate(double ErKeV, paramList *pL, int detj, int sourcej, int fluxj)          
 {
     
     double rate = 0;
-    paramList pListSM = *pList;
     double targetsPerKG;
-    int anti = ( 0 < pList->sources[sourcej].nuFluxFlav[fluxj] ) - ( 0 > pList->sources[sourcej].nuFluxFlav[fluxj] );
+    int anti = ( 0 < pL->sources[sourcej].nuFluxFlav[fluxj] ) - ( 0 > pL->sources[sourcej].nuFluxFlav[fluxj] );
     
-    for(int i=0;i<pList->detectors[detj].nIso;i++)
+    for(int i=0;i<pL->detectors[detj].nIso;i++)
     {
-        targetsPerKG = GeVperKG/(MN*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
-		
-    	if(pList->nucScat)
-	{
-
-            switch( abs(pList->sources[sourcej].nuFluxFlav[fluxj]) )
+        targetsPerKG = GeVperKG/(MN*pL->detectors[detj].isoA[i]); //how many targets per kg of detector
+        
+        if(pL->nucScat)
+        {
+            switch( abs(pL->sources[sourcej].nuFluxFlav[fluxj]) )
             {
-	            case 1:
-	            {
-	                //SM + ee NSI terms
-                        pListSM.qA = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-	                pListSM.qV = ( (GVN + pListSM.epEEuV + 2*pListSM.epEEdV ) * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + ( GVP + 2*pListSM.epEEuV + pListSM.epEEdV ) * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-	                rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-	                
-	                //em NSI terms
-	                pListSM.qA = 0;//4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-	                pListSM.qV = ( (pListSM.epEMuV + 2*pListSM.epEMdV) * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + (2*pListSM.epEMuV + pListSM.epEMdV) * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-	                rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-	                
-	                //et NSI terms
-	                pListSM.qA = 0;//4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-	                pListSM.qV = ( (pListSM.epETuV + 2*pListSM.epETdV) * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + (2*pListSM.epETuV + pListSM.epETdV) * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-	                rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-	            }
-	            case 2:
-	            {
-	                //SM + mm NSI terms
-                    pListSM.qA = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-	                pListSM.qV = ( (GVN + pListSM.epMMuV + 2*pListSM.epMMdV ) * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + ( GVP + 2*pListSM.epMMuV + pListSM.epMMdV ) * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-	                rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-	                
-	                //em NSI terms
-	                pListSM.qA = 0;//4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-	                pListSM.qV = ( (pListSM.epEMuV + 2*pListSM.epEMdV) * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + (2*pListSM.epEMuV + pListSM.epEMdV) * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-	                rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-	                
-	                //mt NSI terms
-	                pListSM.qA = 0;//4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-	                pListSM.qV = ( (pListSM.epMTuV + 2*pListSM.epMTdV) * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + (2*pListSM.epMTuV + pListSM.epMTdV) * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-	                rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-	            }
-	            case 3:
-	            {
-	                //SM + tt NSI terms
-                    pListSM.qA = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-	                pListSM.qV = ( (GVN + pListSM.epTTuV + 2*pListSM.epTTdV ) * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + ( GVP + 2*pListSM.epTTuV + pListSM.epTTdV ) * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-	                rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-	                
-	                //mt NSI terms
-	                pListSM.qA = 0;//4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-	                pListSM.qV = ( (pListSM.epMTuV + 2*pListSM.epMTdV) * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + (2*pListSM.epMTuV + pListSM.epMTdV) * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-	                rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-	                
-	                //et NSI terms
-	                pListSM.qA = 0;//4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );	 
-	                pListSM.qV = ( (pListSM.epETuV + 2*pListSM.epETdV) * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + (2*pListSM.epETuV + pListSM.epETdV) * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);	 
-	                rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-	            }
-	        }
-	     }	
-	    //if(pList->elecScat)
-	    {
-	        int Ne=0;
-	        while(pList->detectors[detj].ionization[i][Ne] > ErKeV && Ne < pList->detectors[detj].isoZ[i]) 
-	            Ne++;
-	    
-	        if(pList->sources[sourcej].isSolar[fluxj] == 1)
-	        {
-	            //nu_e component
-		        pListSM.qA = 0.5;
-		        pListSM.qV = 0.5+2*SSW;
-		        rate += pList->sources[sourcej].survProb[fluxj] * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, sourcej, fluxj);
+                case 1:
+                { 
+                    //SM + ee NSI terms
+                    pL->qA = 4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+                    pL->qV = ( (GVN + pL->epEEuV + 2*pL->epEEdV ) * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + ( GVP + 2*pL->epEEuV + pL->epEEdV ) * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+                    rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+                    
+                    //em NSI terms
+                    pL->qA = 0;//4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+                    pL->qV = ( (pL->epEMuV + 2*pL->epEMdV) * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + (2*pL->epEMuV + pL->epEMdV) * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+                    rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+                    
+                    //et NSI terms
+                    pL->qA = 0;//4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+                    pL->qV = ( (pL->epETuV + 2*pL->epETdV) * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + (2*pL->epETuV + pL->epETdV) * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+                    rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+                    break;
+                }
+                case 2:
+                { 
+                    //SM + mm NSI terms
+                    pL->qA = 4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+                    pL->qV = ( (GVN + pL->epMMuV + 2*pL->epMMdV ) * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + ( GVP + 2*pL->epMMuV + pL->epMMdV ) * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+                    rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+                    
+                    //em NSI terms
+                    pL->qA = 0;//4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+                    pL->qV = ( (pL->epEMuV + 2*pL->epEMdV) * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + (2*pL->epEMuV + pL->epEMdV) * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+                    rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+                    
+                    //mt NSI terms
+                    pL->qA = 0;//4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+                    pL->qV = ( (pL->epMTuV + 2*pL->epMTdV) * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + (2*pL->epMTuV + pL->epMTdV) * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+                    rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+                    break;
+                }
+                case 3:
+                {
+                    //SM + tt NSI terms
+                    pL->qA = 4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+                    pL->qV = ( (GVN + pL->epTTuV + 2*pL->epTTdV ) * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + ( GVP + 2*pL->epTTuV + pL->epTTdV ) * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+                    rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+                    
+                    //mt NSI terms
+                    pL->qA = 0;//4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+                    pL->qV = ( (pL->epMTuV + 2*pL->epMTdV) * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + (2*pL->epMTuV + pL->epMTdV) * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+                    rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+                    
+                    //et NSI terms
+                    pL->qA = 0;//4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+                    pL->qV = ( (pL->epETuV + 2*pL->epETdV) * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + (2*pL->epETuV + pL->epETdV) * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+                    rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+                    break;
+                }
+            }
+         }    
+        if(pL->elecScat)
+        {
+            int Ne=0;
+            while(pL->detectors[detj].ionization[i][Ne] > ErKeV && Ne < pL->detectors[detj].isoZ[i]) 
+                Ne++;
+        
+            if(pL->sources[sourcej].isSolar[fluxj] == 1)
+            {
+                //nu_e component
+                pL->qA = 0.5;
+                pL->qV = 0.5+2*SSW;
+                rate += pL->sources[sourcej].survProb[fluxj] * (pL->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, ME, sourcej, fluxj);
                 //nu_mu and nu_tau component
-		        pListSM.qA = -0.5;
-		        pListSM.qV = -0.5+2*SSW;
-		        rate += (1-pList->sources[sourcej].survProb[fluxj]) * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, sourcej, fluxj);
-		    }
-		    else
-		    {
-		        switch( abs(pList->sources[sourcej].nuFluxFlav[fluxj]) )
-	            {
-    	            case 1:
-    	            {
-        		        pListSM.qA = 0.5*anti+pListSM.epEEeA;
-        		        pListSM.qV = 0.5+2*SSW+pListSM.epEEeV;
-        		        rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, sourcej, fluxj);
+                pL->qA = -0.5;
+                pL->qV = -0.5+2*SSW;
+                rate += (1-pL->sources[sourcej].survProb[fluxj]) * (pL->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, ME, sourcej, fluxj);
+            }
+            else
+            {
+                switch( abs(pL->sources[sourcej].nuFluxFlav[fluxj]) )
+                {
+                    case 1:
+                    {
+                        pL->qA = 0.5*anti+pL->epEEeA;
+                        pL->qV = 0.5+2*SSW+pL->epEEeV;
+                        rate += (pL->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, ME, sourcej, fluxj);
                     }
                     case 2:
                     {
-                        pListSM.qA = -0.5*anti+pListSM.epMMeA;
-        		        pListSM.qV = -0.5+2*SSW+pListSM.epMMeV;
-        		        rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, sourcej, fluxj);
+                        pL->qA = -0.5*anti+pL->epMMeA;
+                        pL->qV = -0.5+2*SSW+pL->epMMeV;
+                        rate += (pL->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, ME, sourcej, fluxj);
                     }
                     case 3:
                     {
-                        pListSM.qA = -0.5*anti+pListSM.epTTeA;
-        		        pListSM.qV = -0.5+2*SSW+pListSM.epTTeV;
-        		        rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, sourcej, fluxj);
+                        pL->qA = -0.5*anti+pL->epTTeA;
+                        pL->qV = -0.5+2*SSW+pL->epTTeV;
+                        rate += (pL->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, ME, sourcej, fluxj);
                     }
                 }
-		    }
-		    
-	    }
-		
+            }
+            
+        }
+        
     }
     
-	return rate*detEff(ErKeV,pList->detectors[detj].eff); 
+    return rate*detEff(ErKeV,pL->detectors[detj].eff); 
 }
 
 //below are functions for total rate of all fluxes
-double diffNSIrate(double ErkeV, paramList *pList, int detj)			  
+double diffNSIrate(double ErkeV, paramList *pL, int detj)              
 {   
     double rate=1e-99;
-    for(int fluxi=0; fluxi< pList->sources[pList->detectors[pList->detj].sourcej].numFlux; fluxi++)
+    for(int fluxi=0; fluxi< pL->sources[pL->detectors[pL->detj].sourcej].numFlux; fluxi++)
     {
-        if( ErkeV < (pList->detectors[detj].ErL + (double)999*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900) )
-           rate += NSIrate( ErkeV, pList, detj, pList->detectors[pList->detj].sourcej, fluxi);
+        if( ErkeV < (pL->detectors[detj].ErL + (double)999*(pL->detectors[detj].ErU-pL->detectors[detj].ErL)/900) )
+           rate += NSIrate( ErkeV, pL, detj, pL->detectors[pL->detj].sourcej, fluxi);
     }
     return rate;
 }
@@ -168,7 +169,7 @@ public:
     }
 };
 
-double intNSIrate(double Er_min, double Er_max, paramList *pList, int detj)						  
+double intNSIrate(double Er_min, double Er_max, paramList *pList, int detj)                          
 {   
     double rate = 0;
     

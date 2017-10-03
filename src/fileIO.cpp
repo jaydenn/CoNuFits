@@ -26,7 +26,7 @@ int readConfigFile(paramList *pL, char *filename)
     input = fopen(filename,"r");
     if(input==NULL) 
     {
-        printf("unable to open parameter file: %s\n",filename);
+        std::cout << "unable to open parameter file: " << filename << std::endl;
         return -1;	
     }
   
@@ -39,6 +39,24 @@ int readConfigFile(paramList *pL, char *filename)
     //Mode switch
     ret = fgets(temp,200,input);
     sscanf(temp,"%d",&mode);
+    
+    if ( mode == 2 )
+    {
+        //Get Multinest sampling parameters
+        FILE* input;
+        input = fopen("multinest.ini","r");
+        if(input==NULL) 
+        {
+            std::cout << "unable to open multinest.ini\n";
+            return -1;	
+        }
+        ret = fgets(temp,200,input);
+        for (int i=0;i<8;i++)
+        {
+            ret = fgets(temp,200,input);
+            sscanf(temp,"%lf",&(pL->sampling[i]));
+        }
+    }
     
     // root for output files
     ret = fgets(temp,200,input);

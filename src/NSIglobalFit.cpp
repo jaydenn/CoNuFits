@@ -26,7 +26,7 @@ void dumper(int &, int &, int &, double **, double **, double **, double &, doub
 void NSIglobalFit(paramList *pL)
 {
         
-        // set some MultiNest sampling parameters
+        // set some MultiNest pL->sampling parameters
         int pWrap[12];              // which parameters to have periodic boundary conditions?
         int seed = -1;			   	            // random no. generator seed for MultiNest, if < 0 then take the seed from system clock
         int simSeed = 0;
@@ -93,8 +93,8 @@ void NSIglobalFit(paramList *pL)
         }
         //run multinest sampling
         if(myrank==0) std::cout << "Starting MultiNest sampling..." << std::endl;
-        //  nestRun( mmodal, ceff, nlive, tol,   efr,ndims, nPar,nCdims,  maxModes,    updInt,  nullZ,     root, seed, pWrap, feedback, resume, outfile,       initMPI, logZero,          loglike, dumper, context)
-        nested::run(      1,    0,  8000, .001, 0.25,ndims, npar, ndims,       100, updateInt,  -1e90,  pL->root, seed, pWrap,        1,     0,       1, (bool)initMPI, logZero, logLikelihoodGlobalFit, dumper, pointer);
+        //  nestRun(          mmodal,            ceff,           nlive,              tol,              efr,ndims, nPar,nCdims,  maxModes,    updInt,           nullZ,      root, seed, pWrap,        feedback,          resume, outfile,       initMPI, logZero,                loglike, dumper, context)
+        nested::run( pL->sampling[0], pL->sampling[1], pL->sampling[2],  pL->sampling[6],  pL->sampling[5],ndims, npar, ndims,       100, updateInt, pL->sampling[7],  pL->root, seed, pWrap, pL->sampling[3], pL->sampling[4],       1, (bool)initMPI, logZero, logLikelihoodGlobalFit, dumper, pointer);
         
         #ifdef MPI
             MPI_Finalize();
