@@ -175,6 +175,10 @@ void logLikelihoodGlobalFit(double *Cube, int &ndim, int &npars, double &lnew, l
 //        pL->epMMdV = Cube[3] = Cube[3]*4 - 2;
 //	pL->epMMeV = Cube[5] = Cube[5]*4 - 2;
 	
+        pL->sources[0].nuFluxNorm[0] = 1 + gsl_cdf_gaussian_Pinv( Cube[2], pL->sources[0].nuFluxUn[0]);
+        pL->sources[0].nuFluxNorm[1] = 1 + gsl_cdf_gaussian_Pinv( Cube[2], pL->sources[0].nuFluxUn[0]);
+        pL->sources[1].nuFluxNorm[0] = 1 + gsl_cdf_gaussian_Pinv( Cube[2], pL->sources[0].nuFluxUn[0]);
+
 /*	int cubei=4;
 	for(int detj=0; detj < pL->ndet; detj++)
 	{

@@ -35,7 +35,7 @@ void NSIglobalFit(paramList *pL)
         int outfile = 1;								      // write output files?
         int updateInt = 1000000;							  // update interval (for calling dumper, which isn't used here)
 
-        int ndims = 2;//+pL->ndet+pL->nSource;                                // number of parameters in the reconstruction
+        int ndims = 3;//+pL->ndet+pL->nSource;                                // number of parameters in the reconstruction
 
         int npar  = ndims;                                // global number of parameters
 
@@ -95,7 +95,7 @@ void NSIglobalFit(paramList *pL)
         if(myrank==0) std::cout << "Starting MultiNest sampling..." << std::endl;
         //  nestRun(          mmodal,            ceff,           nlive,              tol,              efr,ndims, nPar,nCdims,  maxModes,    updInt,           nullZ,      root, seed, pWrap,        feedback,          resume, outfile,       initMPI, logZero,                loglike, dumper, context)
         nested::run( pL->sampling[0], pL->sampling[1], pL->sampling[2],  pL->sampling[6],  pL->sampling[5],ndims, npar, ndims,       100, updateInt, pL->sampling[7],  pL->root, seed, pWrap, pL->sampling[3], pL->sampling[4],       1, (bool)initMPI, logZero, logLikelihoodGlobalFit, dumper, pointer);
-        
+
         #ifdef MPI
             MPI_Finalize();
         #endif
