@@ -35,7 +35,7 @@ void NSIglobalFit(paramList *pL)
         int outfile = 1;								      // write output files?
         int updateInt = 1000000;							  // update interval (for calling dumper, which isn't used here)
 
-        int ndims = 2;//+pL->ndet+pL->nSource;                                // number of parameters in the reconstruction
+        int ndims = 4+pL->ndet+pL->nSource;                                // number of parameters in the reconstruction
 
         int npar  = ndims;                                // global number of parameters
 

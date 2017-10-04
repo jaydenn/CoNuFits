@@ -12,7 +12,6 @@
 	#include "detectorFunctions.h"
 #endif
 
-    
 //natural log of Poisson dist: gives more accurate values for small probabilities (because of machine precision)
 double logPoisson(double obs, double expect)
 {
@@ -25,22 +24,22 @@ double logPoisson(double obs, double expect)
 //likelihood function for binned data
 double logLikelihood(paramList *pList)
 {
-        
+
     //Calculate log-likelihood
     double loglike = 0;
     double Er_min, Er_max;
     double l,SM,BG,BSM;
-    
+
     //loop over detectors
     for(int detj=0; detj < pList->ndet; detj++)
-    {   
+    {
         Er_min = pList->detectors[detj].ErL;
         //loop over recoil energy bins
         for(int i=0; i< pList->detectors[detj].nbins; i++)			
         {
             //set bin limits
             Er_max = Er_min + pList->detectors[detj].binW[i];
-            
+
             SM  = intSMrate( Er_min, Er_max, pList, detj);
             BG  = pList->detectors[detj].BgNorm * intBgRate( pList->detectors[detj], Er_min, Er_max);
             BSM = intBSMrate( Er_min, Er_max, pList, detj, pList->signalNorm); 
@@ -169,30 +168,30 @@ void logLikelihoodGlobalFit(double *Cube, int &ndim, int &npars, double &lnew, l
 
     //scale pars for this point in the parameter space
 	pL->epEEuV = Cube[0] = Cube[0]*4 - 2;
-//	pL->epEEdV = Cube[1] = Cube[1]*4 - 2;
+	pL->epEEdV = Cube[1] = Cube[1]*4 - 2;
 //   	pL->epEEeV = Cube[2] = Cube[2]*4 - 2;
-	pL->epMMuV = Cube[1] = Cube[1]*4 - 2;
-//        pL->epMMdV = Cube[3] = Cube[3]*4 - 2;
+	pL->epMMuV = Cube[2] = Cube[2]*4 - 2;
+        pL->epMMdV = Cube[3] = Cube[3]*4 - 2;
 //	pL->epMMeV = Cube[5] = Cube[5]*4 - 2;
-	
-/*	int cubei=4;
+
+	int cubei=4;
 	for(int detj=0; detj < pL->ndet; detj++)
 	{
 	    Cube[cubei] = pL->detectors[detj].BgNorm = 1 + gsl_cdf_gaussian_Pinv( Cube[cubei], pL->detectors[detj].BgUn);
 	    cubei++;
 	}
-	
+
     for(int sourcei=0; sourcei < pL->nSource; sourcei++)
     {
         for(int fluxj=0; fluxj < pL->sources[sourcei].numFlux; fluxj++)
         {
             pL->sources[sourcei].nuFluxNorm[fluxj] = 1 + gsl_cdf_gaussian_Pinv( Cube[cubei], pL->sources[sourcei].nuFluxUn[fluxj]);
         }
-       
+
         Cube[cubei] = pL->sources[sourcei].nuFluxNorm[0];
         cubei++;
     }
-*/
+
     lnew = logLikelihoodNSI(pL);
 
 }
