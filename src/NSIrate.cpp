@@ -150,10 +150,10 @@ double NSIrate(double ErKeV, paramList *pL, int detj, int sourcej, int fluxj)
 double diffNSIrate(double ErkeV, paramList *pL, int detj)              
 {   
     double rate=1e-99;
-    for(int fluxi=0; fluxi< pL->sources[pL->detectors[pL->detj].sourcej].numFlux; fluxi++)
+    for(int fluxi=0; fluxi < pL->sources[pL->detectors[detj].sourcej].numFlux; fluxi++)
     {
-        if( ErkeV < (pL->detectors[detj].ErL + (double)999*(pL->detectors[detj].ErU-pL->detectors[detj].ErL)/900) )
-           rate += NSIrate( ErkeV, pL, detj, pL->detectors[pL->detj].sourcej, fluxi);
+        if( ErkeV < pL->detectors[detj].ErU && ErkeV > pL->detectors[detj].ErL )
+           rate += pL->sources[pL->detectors[detj].sourcej].nuFluxNorm[fluxi] * NSIrate( ErkeV, pL, detj, pL->detectors[detj].sourcej, fluxi);
     }
     return rate;
 }
@@ -161,21 +161,21 @@ double diffNSIrate(double ErkeV, paramList *pL, int detj)
 class NSIrateIntegral
 {
 public:
-    paramList *pList;
+    paramList *pL;
     int detj;
     double operator()(double ErkeV) const
     {
-        return diffNSIrate( ErkeV, pList, detj);
+        return diffNSIrate( ErkeV, pL, detj);
     }
 };
 
-double intNSIrate(double Er_min, double Er_max, paramList *pList, int detj)                          
+double intNSIrate(double Er_min, double Er_max, paramList *pL, int detj)                          
 {   
     double rate = 0;
     
     NSIrateIntegral NSIint;
     NSIint.detj = detj;
-    NSIint.pList = pList;
+    NSIint.pL = pL;
     
     return DEIntegrator<NSIrateIntegral>::Integrate(NSIint,Er_min,Er_max,1e-6);
 }

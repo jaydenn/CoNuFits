@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
         }
     } 
     
-	//pList.printPars();
+	pList.printPars();
     
 	if ( mode < 1 ) 
     {
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     }
     
     //future feature
-    //sterile sensitivity mode
+    //sterile mode
     if ( mode == 9 )
     {
         sterileOscillation(&pList);

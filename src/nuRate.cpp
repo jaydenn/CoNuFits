@@ -23,11 +23,11 @@ double nuRate(double ErKeV, paramList *pList, double Mt, int sourcej, int fluxj)
 {
 
 	double ErGeV = ErKeV/GeVtoKeV;
-
+    //std::cout << sourcej << " " << fluxj << " " << pList->sources[sourcej].nuFlux[fluxj] << std::endl;
     double intConst    = fluxIntegral( ErGeV, pList, Mt,  0, sourcej, fluxj);
 	double intInvEnu   = fluxIntegral( ErGeV, pList, Mt, -1, sourcej, fluxj);
 	double intInvEnuSq = fluxIntegral( ErGeV, pList, Mt, -2, sourcej, fluxj);
-    
+
     return pow(GFERMI,2) / ( 2 * M_PI ) * Mt / GeVtoKeV * secsPerDay
 	        * ( 
 		          intConst	  * 2*( pow(pList->qA,2) + pow(pList->qV,2) )
@@ -72,14 +72,14 @@ void rateInit( paramList *pList, int detj, int fluxj, double (*rateFunc)(double,
     
     for( int i=1; i < INTERP_POINTS; i++ )
     {
-        //always over and undershoot range so that interpolation is well behaved
+        //always overshoot range so that interpolation is well behaved
         if(pList->logBins == 0 )//&& ErkeV[i-1] > 5)
             ErkeV[i] = ErkeV[i-1] + linStep;
         else
             ErkeV[i] = ErkeV[i-1] * logStep;
             
         rate[i] = rateFunc( (double)ErkeV[i], pList, detj, sourcej, fluxj);	
-       //std::cout << i << " " << ErkeV[i] << " " << logStep << std::endl;
+        //std::cout << i << " " << ErkeV[i] << " " << rate[i] << std::endl;
     }
     if(ErkeV[INTERP_POINTS-1] < pList->detectors[detj].ErU)
     {

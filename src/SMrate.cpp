@@ -24,70 +24,69 @@ const double GAP = 0.61689;  //SM axial proton coupling
 const double GAN = -0.598426;//SM axial neutron coupling
 
 //returns SM rate per kg/year/keV for the jth flux
-double SMrate(double ErKeV, paramList *pList, int detj, int sourcej, int fluxj)                  
+double SMrate(double ErKeV, paramList *pL, int detj, int sourcej, int fluxj)                  
 {
     
     double rate = 0;
-    paramList pListSM = *pList;
     double targetsPerKG;
 
-    for(int i=0;i<pList->detectors[detj].nIso;i++)
+    for(int i=0;i<pL->detectors[detj].nIso;i++)
     {
-        targetsPerKG = GeVperKG/(MN*pList->detectors[detj].isoA[i]); //how many targets per kg of detector
+        targetsPerKG = GeVperKG/(MN*pL->detectors[detj].isoA[i]); //how many targets per kg of detector
         
-        if(pList->nucScat)
+        if(pL->nucScat)
         {
-            pListSM.qA = 4.0/3.0 * (pList->detectors[detj].isoJN[i]+1) / pList->detectors[detj].isoJN[i] * ( pList->detectors[detj].isoSN[i]*GAN + pList->detectors[detj].isoSZ[i]*GAP );     
-            pListSM.qV = ( GVN * (pList->detectors[detj].isoA[i] - pList->detectors[detj].isoZ[i]) + GVP * pList->detectors[detj].isoZ[i] )* ffactorSI( pList->detectors[detj].isoA[i], ErKeV);     
-            rate += targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, MN*pList->detectors[detj].isoA[i], sourcej, fluxj);
-        }    
-        if(pList->elecScat)
+            pL->qA = 4.0/3.0 * (pL->detectors[detj].isoJN[i]+1) / pL->detectors[detj].isoJN[i] * ( pL->detectors[detj].isoSN[i]*GAN + pL->detectors[detj].isoSZ[i]*GAP );     
+            pL->qV = ( GVN * (pL->detectors[detj].isoA[i] - pL->detectors[detj].isoZ[i]) + GVP * pL->detectors[detj].isoZ[i] )* ffactorSI( pL->detectors[detj].isoA[i], ErKeV);     
+            rate += targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, MN*pL->detectors[detj].isoA[i], sourcej, fluxj);
+        }
+        if(pL->elecScat)
         {
             int Ne=0;
-            while(pList->detectors[detj].ionization[i][Ne] > ErKeV && Ne < pList->detectors[detj].isoZ[i]) 
+            while(pL->detectors[detj].ionization[i][Ne] > ErKeV && Ne < pL->detectors[detj].isoZ[i]) 
                 Ne++;
         
-            if(pList->sources[pList->detectors[pList->detj].sourcej].isSolar[fluxj] == 1)
+            if(pL->sources[pL->detectors[pL->detj].sourcej].isSolar[fluxj] == 1)
             {
-                pListSM.qA = 0.5;
-                pListSM.qV = 2*SSW+0.5;
-                rate += pList->sources[pList->detectors[pList->detj].sourcej].survProb[fluxj] * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, sourcej, fluxj);
+                pL->qA = 0.5;
+                pL->qV = 2*SSW+0.5;
+                rate += pL->sources[pL->detectors[pL->detj].sourcej].survProb[fluxj] * (pL->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, ME, sourcej, fluxj);
 
-                pListSM.qA = -0.5;
-                pListSM.qV = 2*SSW-0.5;
-                rate += (1-pList->sources[pList->detectors[pList->detj].sourcej].survProb[fluxj]) * (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, sourcej, fluxj);
+                pL->qA = -0.5;
+                pL->qV = 2*SSW-0.5;
+                rate += (1-pL->sources[pL->detectors[pL->detj].sourcej].survProb[fluxj]) * (pL->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, ME, sourcej, fluxj);
             }
             else
             {
-                pListSM.qA = -0.5;
-                pListSM.qV = 0.5+2*SSW;
-                rate += (pList->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pList->detectors[detj].isoFrac[i] * nuRate( ErKeV, &pListSM, ME, sourcej, fluxj);
+                pL->qA = -0.5;
+                pL->qV = 0.5+2*SSW;
+                rate += (pL->detectors[detj].isoZ[i]-Ne) * targetsPerKG * pL->detectors[detj].isoFrac[i] * nuRate( ErKeV, pL, ME, sourcej, fluxj);
             }
             
         }
         
     }
-    
-    return rate*detEff(ErKeV,pList->detectors[detj].eff); 
+   
+    return rate*detEff(ErKeV,pL->detectors[detj].eff); 
 }
 
 //below are functions for total rate of all fluxes
-double diffSMrate(double ErkeV, paramList *pList, int detj)              
+double diffSMrate(double ErkeV, paramList *pL, int detj)              
 {   
     double rate=1e-99;
-    for(int i=0; i< pList->sources[pList->detectors[pList->detj].sourcej].numFlux; i++)
+    for(int fluxi=0; fluxi< pL->sources[pL->detectors[detj].sourcej].numFlux; fluxi++)
     {
-        if( ErkeV < (pList->detectors[detj].ErL + (double)999*(pList->detectors[detj].ErU-pList->detectors[detj].ErL)/900) )
-            rate += gsl_spline_eval(pList->detectors[detj].signalSM[i], ErkeV, pList->detectors[detj].accelSM[i]);
+        if( ErkeV > pL->detectors[detj].ErL && ErkeV < pL->detectors[detj].ErU )//(pL->detectors[detj].ErL + (double)999*(pL->detectors[detj].ErU-pL->detectors[detj].ErL)/900) )
+            rate +=  SMrate( ErkeV, pL, detj, pL->detectors[detj].sourcej, fluxi); //gsl_spline_eval(pL->detectors[detj].signalSM[i], ErkeV, pL->detectors[detj].accelSM[i]);
     }
     return rate;
 }
 
-double intSMrate(double Er_min, double Er_max, paramList *pList, int detj)                          
+double intSMrate(double Er_min, double Er_max, paramList *pL, int detj)                          
 {   
-    double rate = 0;
-    for(int i=0; i< pList->sources[pList->detectors[pList->detj].sourcej].numFlux; i++)
-        rate += pList->sources[pList->detectors[pList->detj].sourcej].nuFluxNorm[i] * gsl_spline_eval_integ(pList->detectors[detj].signalSM[i], Er_min, Er_max, pList->detectors[detj].accelSM[i]);
+    double rate = 1e-99;
+    for(int i=0; i < pL->sources[pL->detectors[detj].sourcej].numFlux; i++)
+        rate += pL->sources[pL->detectors[detj].sourcej].nuFluxNorm[i] * gsl_spline_eval_integ(pL->detectors[detj].signalSM[i], Er_min, Er_max, pL->detectors[detj].accelSM[i]);
     
     return rate;
 }

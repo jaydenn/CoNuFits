@@ -232,7 +232,7 @@ double fluxIntegral(double ErGeV,  paramList *pList, double Mt, int EnuPow, int 
     
     pList->sourcej = sourcej;
     pList->fluxj = fluxj;
-    
+
     if(pList->sources[sourcej].isLine[fluxj]==1)
     {
         if(EnuMinGeV < pList->sources[sourcej].lineE[fluxj] )

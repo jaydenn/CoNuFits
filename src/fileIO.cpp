@@ -189,7 +189,7 @@ int readConfigFile(paramList *pL, char *filename)
         }
         case 6:
         {
-           pL->epEEuV = pL->epEEdV = pL->C;
+           //pL->epMMuV = pL->epMMdV = pL->epEEuV = pL->epEEdV = pL->C;
            break;
         }
         default:
@@ -216,18 +216,19 @@ int readConfigFile(paramList *pL, char *filename)
     char sourceName[30]="";
     int sourcej;
     double sourceDistance=0;
+    
     while(temp[0]=='#')
     {
         sscanf(temp,"%s %lf %s %lf", name, &exp, sourceName, &(sourceDistance));
         sourcej=sourceInit(pL, sourceName, sourceDistance);
         if(sourcej<0) { std::cout << "Could not create source, exiting" << std::endl; return -1; }
-        //  std::cout << sName << " " << sourcej << " " << pL->nSource << std::endl;
-	if(newDetector(pL, name, exp, sourcej)) { std::cout << "Could not create detector, exiting" << std::endl; return -1; }
+        
+	    if(newDetector(pL, name, exp, sourcej)) { std::cout << "Could not create detector, exiting" << std::endl; return -1; }
   	    
         std::cout << "Using detector " << name << " with source " << sourceName << std::endl;
         ret = fgets(temp,200,input);
     }    
-        
+    
     //asimov or random sim?
     ret = fgets(temp,200,input);
     ret = fgets(temp,200,input);
