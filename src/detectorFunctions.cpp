@@ -222,7 +222,12 @@ int newDetector(paramList *pList, char *name, double exp, int sourcej)
 //returns integrated total # background events per tonne/year for bg type, with recoil  Er_min < Er < Er_max
 double intBgRate(detector det, double Er_min, double Er_max)                            
 {   
-    return gsl_spline_eval_integ(det.background, Er_min, Er_max, det.accelBg);
+    if( Er_min > det.ErL && Er_max < det.ErU )
+        return gsl_spline_eval_integ(det.background, Er_min, Er_max, det.accelBg);
+    else if( Er_min < det.ErL && Er_max < det.ErU )
+        return gsl_spline_eval_integ(det.background, det.ErL, Er_max, det.accelBg);
+    else
+        return gsl_spline_eval_integ(det.background, det.ErL, det.ErU, det.accelBg);
 }
 
 double diffBgRate(detector det, double Er)
